@@ -1,0 +1,34 @@
+{
+    "Debug Unit" : {
+        "name": "Debug Unit",
+        "health": 100,
+        "speed": 1.0,
+        "standing_range": 1,
+        "idle": 1,
+        "plots": [
+            {"frame": 6, "range": 1, "damage": 8}
+        ],
+        "texture": "Debug_unit",
+        "AttackFrames": 8,
+        "IdleFrames": 2,
+        "WalkFrames": 2,
+        "Recharge": 1,
+        "Cost": 10
+    },
+    "Debug Unit2" : {
+        "name": "Debug Unit2",
+        "health": 100,
+        "speed": 1.0,
+        "standing_range": 1.0,
+        "idle": 1,
+        "plots": [
+            {"frame": 6, "range": 1, "damage": 8}
+        ],
+        "texture": "Debug_unit2",
+        "AttackFrames": 8,
+        "IdleFrames": 2,
+        "WalkFrames": 2,
+        "Recharge": 1,
+        "Cost": 10
+    }
+}
