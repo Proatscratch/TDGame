@@ -41,7 +41,6 @@ game.peoples.append(Player_Tower)
 clock = pygame.time.Clock()
 t_acc = 0.0
 
-#TODO : ADD SHADOW FIX, UV FIX, AND RENDER FIX
 #game.peoples.append(game.fighters.GenerateFighter("Debug Unit", glm.vec3(1, 0, 4), 0))
 lineup  = ["Debug Unit", "Cannon", "", "", "", "", "", ""]
 game.levels.init(ctx, renderer)
