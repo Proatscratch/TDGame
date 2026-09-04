@@ -1,0 +1,54 @@
+{
+    "Debug Unit" : {
+        "name": "Debug Unit",
+        "health": 100,
+        "speed": 1.0,
+        "standing_range": 1,
+        "idle": 1,
+        "plots": [
+            {"frame": 6, "range": 1, "damage": 8}
+        ],
+        "texture": "Debug_unit",
+        "AttackFrames": 8,
+        "IdleFrames": 2,
+        "WalkFrames": 2,
+        "Recharge": 1,
+        "Cost": 10
+    },
+    "Cannon" : {
+        "name": "Cannon",
+        "health": 300,
+        "speed": 0.5,
+        "standing_range": 6,
+        "idle": 2,
+        "_comment": "NOTE, IF THIS IS USED- ERROR IMMEDIATELY!, also, HIT_CONDITION = GROUND (if projectile hits ground), GUY (if projectile hits guy)",
+    
+        "plots": [
+            {"frame": 1, "yvelocity": 1, "G": -1, "damage": 32, "HIT_CONDITION": "GROUND", "sphere_size": 0.2, "Pframe":4}
+        ],
+        "texture": "Mesh.Cannon",
+        "AttackFrames": 4,
+        "WalkFrames": 1,
+        "IdleFrames": 1,
+        "Recharge": 1,
+        "Cost": 20
+
+    },
+    "Debug Unit2" : {
+        "name": "Debug Unit2",
+        "health": 100,
+        "speed": 1.0,
+        "standing_range": 1.0,
+        "idle": 1,
+        "plots": [
+            {"frame": 6, "range": 1, "damage": 8}
+        ],
+        "texture": "Debug_unit2",
+        "AttackFrames": 8,
+        "IdleFrames": 2,
+        "WalkFrames": 2,
+        "Recharge": 1,
+        "Cost": 10
+    }
+    
+}
