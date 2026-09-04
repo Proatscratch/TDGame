@@ -29,7 +29,6 @@ import glm, tower
 game.fighters.init(ctx, renderer)
 tower.init(ctx, renderer)
 
-# Example Usage:
 floor_indices = [0, 1, 2, 2, 1, 3]
 Z = renderer.create_object(floor_verts, floor_indices)
 Z.spritesheet = render.SpriteSheet(ctx, "assets/grass.png", 1, 1)
