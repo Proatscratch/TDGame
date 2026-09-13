@@ -98,7 +98,6 @@ class Projectile:
                 self.delME = 1
 
 def FighterUpdate(self, dt, enemies, avoid, projectiles):
-    """The 'Brain': handles target acquisition, evasion calculations, obstacle sliding, and attack execution."""
     self.target = glm.vec3(3121321, 1323232, 132123123)
     target = None
     
