@@ -1,5 +1,5 @@
 import numpy
-import pygame, moderngl, glm
+import pygame, moderngl, glm, combat
 
 import fighters
 import render
@@ -208,7 +208,7 @@ def renderslot(dt):
             shader['scale'].value = 0.2 / (NDC.y * 2 + 2)  
             
             for obs in avoid:
-                if fighters.is_point_inside_shape(world_space_pos, obs ):
+                if combat.is_point_inside_shape(world_space_pos, obs ):
                     world_space_pos.z = -1
             if (world_space_pos.z) < 0:
                 shader["percent"] = 1
@@ -250,7 +250,7 @@ def update(dt):
     if (dt > 0.1): dt = 0.1
     levels.update(dt)
     for p in peoples:
-       
+        combat.FighterUpdate(p, dt, peoples, avoid, projectiles)
         p.update(dt, peoples, avoid, projectiles)
      
         
