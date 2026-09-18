@@ -24,7 +24,7 @@
         "_comment": "NOTE, IF THIS IS USED- ERROR IMMEDIATELY!, also, HIT_CONDITION = GROUND (if projectile hits ground), GUY (if projectile hits guy)",
     
         "plots": [
-            {"frame": 1, "yvelocity": 1, "G": -1, "damage": 32, "HIT_CONDITION": "GROUND", "sphere_size": 0.2, "Pframe":4}
+            {"frame": 1, "yvelocity": 1, "G": -1, "damage": 32, "HIT_CONDITION": "GROUND", "sphere_size": 0.5, "Pframe":4}
         ],
         "texture": "Mesh.Cannon",
         "AttackFrames": 4,

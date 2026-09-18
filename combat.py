@@ -10,31 +10,36 @@ rend = None
 def set_renderer_reference(renderer):
     global rend
     rend = renderer
-
 def intersection(point, obs):
     obs_model = obs.get_model_matrix()
     intersections = 0
     ray_origin = glm.vec2(point.x, point.z)
     ray_end = glm.vec2(point.x + 10000.0, point.z)
     
-    for i in range(0, len(obs.indices), 3):
-        idx0, idx1, idx2 = (
-            obs.indices[i] * 8,
-            obs.indices[i + 1] * 8,
-            obs.indices[i + 2] * 8,
-        )
-        v0_w = glm.vec3(obs_model * glm.vec4(obs.vertices[idx0], obs.vertices[idx0 + 1], obs.vertices[idx0 + 2], 1.0))
-        v1_w = glm.vec3(obs_model * glm.vec4(obs.vertices[idx1], obs.vertices[idx1 + 1], obs.vertices[idx1 + 2], 1.0))
-        v2_w = glm.vec3(obs_model * glm.vec4(obs.vertices[idx2], obs.vertices[idx2 + 1], obs.vertices[idx2 + 2], 1.0))
+    vertices = obs.vertices
+    indices = obs.indices
+    
+    for i in range(0, len(indices), 3):
+        idx0 = indices[i] * 8
+        idx1 = indices[i + 1] * 8
+        idx2 = indices[i + 2] * 8
+        
+        # Transform vertices to world space
+        v0_w = glm.vec3(obs_model * glm.vec4(vertices[idx0], vertices[idx0 + 1], vertices[idx0 + 2], 1.0))
+        v1_w = glm.vec3(obs_model * glm.vec4(vertices[idx1], vertices[idx1 + 1], vertices[idx1 + 2], 1.0))
+        v2_w = glm.vec3(obs_model * glm.vec4(vertices[idx2], vertices[idx2 + 1], vertices[idx2 + 2], 1.0))
 
         p0 = glm.vec2(v0_w.x, v0_w.z)
         p1 = glm.vec2(v1_w.x, v1_w.z)
         p2 = glm.vec2(v2_w.x, v2_w.z)
 
-        edges = [(p0, p1), (p1, p2), (p2, p0)]
-        for edge in edges:
-            if ray_intersect_segment(ray_origin, ray_end, edge[0], edge[1]):
-                intersections += 1
+        # Check edges against the ray
+        if ray_intersect_segment(ray_origin, ray_end, p0, p1):
+            intersections += 1
+        if ray_intersect_segment(ray_origin, ray_end, p1, p2):
+            intersections += 1
+        if ray_intersect_segment(ray_origin, ray_end, p2, p0):
+            intersections += 1
 
     return intersections
 

@@ -100,7 +100,8 @@ class Fighter:
         if self.renderObject.vertices is QUAD.vertices:
             self.renderObject.flipX = 1 if move_dest.x < self.position.x else -1
         else:
-            self.renderObject.rotation.y = glm.mix(
+            if (self.plots[0][2] > 0 or len(self.plots[0]) > 3):
+                self.renderObject.rotation.y = glm.mix(
                 self.renderObject.rotation.y, 
                 -math.atan2(self.target.z - self.position.z, self.target.x - self.position.x) - 3.14/2, 
                 dt * 1

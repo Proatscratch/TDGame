@@ -79,8 +79,8 @@ layout(binding = 0, r32f) uniform image2D u_ShadowMask;
 uniform sampler2D u_GWorldPos;
 uniform sampler2D u_GNormal;
 
-#define MAX_TEXTURES 16
-uniform sampler2D u_Textures[MAX_TEXTURES];
+// Single master texture atlas for the entire scene
+uniform sampler2D u_TextureAtlas;
 
 uniform vec3 u_PrimaryLightPos;
 uniform uint u_NumObjects;
@@ -105,9 +105,9 @@ struct BVHNode {
 struct ObjectData {
     uint bvhRootNode;
     uint hasTexture;
-    uint textureIndex;
+    uint textureIndex; // Kept for layout compatibility
     uint pad0;
-    vec4 uvTransform;
+    vec4 uvTransform;  // xy = scale, zw = offset
 };
 
 layout(std430, binding = 1) readonly buffer VertexBuffer {
@@ -219,7 +219,7 @@ void main() {
                             
                             if (obj.hasTexture == 1) {
                                 vec2 transformedUV = hitUV * obj.uvTransform.xy + obj.uvTransform.zw;
-                                alpha = texture(u_Textures[obj.textureIndex], transformedUV).a;
+                                alpha = texture(u_TextureAtlas, transformedUV).a;
                             }
                             
                             if (alpha >= 0.9) {
@@ -326,6 +326,7 @@ class SpriteSheet:
                 tex = ctx.texture((w, h), 4, data)
                 tex.filter = (moderngl.LINEAR, moderngl.LINEAR)
                 self.frames.append(tex)
+
     def SetSurface(self, ctx, surf):
         self.frames = []
         self.framesC = 1
@@ -339,6 +340,7 @@ class SpriteSheet:
     def reset(self):
         self.current_frame = 0
         self.is_finished = 0
+
     def bind_frame(self, program, frame_index=0, texture_unit=0):
         if not self.frames:
             if "u_HasTexture" in program:
@@ -406,6 +408,7 @@ class RenderObject:
         self.clippable = 0
         self.rotation = glm.vec3(0, 0, 0)
         self.INNER = glm.vec3(0, 0, 0)
+
     def get_model_matrix(self):
         mat = glm.translate(glm.mat4(1.0), self.position)
         mat = glm.translate(mat, self.INNER)
@@ -414,7 +417,6 @@ class RenderObject:
         mat = glm.rotate(mat, self.rotation.z, glm.vec3(0, 0, 1))
         mat = glm.rotate(mat, glm.radians(90.0) * (self.flipX - 1), glm.vec3(0, 1, 0))
         mat = glm.scale(mat, self.scale)
-        
         return mat
 
     def duplicate(self, position=None, scale=None, spritesheet=None, rotation=None):
@@ -435,6 +437,7 @@ class RenderObject:
         dup.rotation = glm.vec3(rotation) if rotation is not None else glm.vec3(self.rotation)
         dup.INNER = glm.vec3(self.INNER)
         return dup
+
 TIME = 0
 class Renderer:
     def __init__(self, ctx, width, height):
@@ -503,9 +506,6 @@ class Renderer:
         obj_data_list = []
         bvh_nodes = []
         
-        texture_indices = {}
-        next_texture_index = 0
-        
         v_offset = 0
         for i, obj in enumerate(self.scene_objects):
             num_tris = len(obj.indices) // 3
@@ -535,14 +535,6 @@ class Renderer:
             })
             
             has_tex = 1 if (obj.spritesheet and obj.spritesheet.frames) else 0
-            if has_tex:
-                tex_key = id(obj.spritesheet)
-                if tex_key not in texture_indices:
-                    texture_indices[tex_key] = next_texture_index
-                    next_texture_index += 1
-                texture_index = texture_indices[tex_key]
-            else:
-                texture_index = 0
 
             uv_scale = (1.0, 1.0)
             uv_offset = (0.0, 0.0)
@@ -559,7 +551,7 @@ class Renderer:
             obj_data_list.append({
                 'bvh_root': i,
                 'has_texture': has_tex,
-                'texture_index': texture_index,
+                'texture_index': 0,
                 'uv_scale': uv_scale,
                 'uv_offset': uv_offset
             })
@@ -648,39 +640,11 @@ class Renderer:
         if "u_GNormal" in self.ray_trace_program:
             self.ray_trace_program['u_GNormal'] = 1
 
-        MAX_TEXTURES = 16
-        texture_units_array = [2] * MAX_TEXTURES
-        texture_units_map = {}
-        next_texture_index = 0
-
-        for obj in self.scene_objects:
-            if not obj.spritesheet or not obj.spritesheet.frames:
-                continue
-
-            tex_key = id(obj.spritesheet)
-
-            if tex_key not in texture_units_map:
-                if next_texture_index >= MAX_TEXTURES:
-                    raise RuntimeError(
-                        f"Too many textures for ray tracer: maximum is {MAX_TEXTURES}"
-                    )
-
-                texture_index = next_texture_index
-                texture_units_map[tex_key] = texture_index
-                texture_unit = 2 + texture_index
-                texture_units_array[texture_index] = texture_unit
-
-                obj.spritesheet.bind_frame(
-                    self.ray_trace_program,
-                    obj.spritesheet.current_frame,
-                    texture_unit=texture_unit
-                )
-
-                next_texture_index += 1
-
-        # Fix: Assign the entire sampler array sequence at once to avoid KeyError
-        if "u_Textures" in self.ray_trace_program:
-            self.ray_trace_program['u_Textures'] = tuple(texture_units_array)
+        # Bind texture atlas to texture unit 2 and pass to compute shader
+        if hasattr(self, 'ambient') and self.ambient.frames:
+            self.ambient.frames[0].use(2)
+            if "u_TextureAtlas" in self.ray_trace_program:
+                self.ray_trace_program['u_TextureAtlas'] = 2
 
         self.ray_trace_program.run((self.width + 7) // 8, (self.height + 7) // 8, 1)
 
