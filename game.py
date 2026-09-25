@@ -9,12 +9,13 @@ peoples: list[fighters.Fighter] = []
 projectiles: list[fighters.Projectile] = []
 
 vertex = numpy.array([-0.75, -0.5, 0.0, 0.0,
-                     0.75, -0.5, 1.0, 0.0,
-                     -0.75, 0.5, 0.0, 1.0,
-                     0.75, 0.5, 1.0, 1.0], dtype=numpy.float32)
+                      0.75, -0.5, 1.0, 0.0,
+                      -0.75, 0.5, 0.0, 1.0,
+                      0.75, 0.5, 1.0, 1.0], dtype=numpy.float32)
 
 indices = numpy.array([0, 1, 2, 3], dtype=numpy.int32)
 off = 0
+paused = False  # Pause state flag
 
 vshader = """
 #version 330
@@ -41,10 +42,50 @@ void main() {
     if (1-v_uv.x < percent) f_color *= 0.5;
 }
 """
+#TODO: unify GUI BUTTON in one file.
+class GUIButton:
+    """Helper class to render simple 2D UI text buttons using Pygame fonts and ModernGL textures."""
+    def __init__(self, ctx, text, font, bg_color=(50, 50, 50, 200), fg_color=(255, 255, 255)):
+        self.ctx = ctx
+        text_surf = font.render(text, True, fg_color)
+        tw, th = text_surf.get_size()
+        padding = 20
+        
+        # Draw background surface
+        surf = pygame.Surface((tw + padding * 2, th + padding * 2), pygame.SRCALPHA)
+        surf.fill(bg_color)
+        surf.blit(text_surf, (padding, padding))
+        
+        w, h = surf.get_size()
+        data = pygame.image.tobytes(surf, 'RGBA', True)
+        self.texture = self.ctx.texture((w, h), 4, data)
+        self.width = w
+        self.height = h
+
+    def render(self, shader, vao, offset, scale=0.2):
+        self.texture.use(7)
+        shader['Texture'].value = 7
+        shader['u_proj'].write(glm.ortho(-1.5, 1.5, -1, 1, -1, 1).to_bytes())
+        shader['scale'].value = scale
+        shader['percent'].value = 0
+        shader['offset'].value = offset
+        vao.render(moderngl.TRIANGLE_STRIP)
+
+    def is_hovered(self, ortho_x, ortho_y, offset, scale=0.2):
+        half_w = 0.75 * scale
+        half_h = 0.5 * scale
+        min_x = offset[0] - half_w
+        max_x = offset[0] + half_w
+        min_y = offset[1] - half_h
+        max_y = offset[1] + half_h
+        return min_x <= ortho_x <= max_x and min_y <= ortho_y <= max_y
+
 
 def init(ctxs, rend):
-    global vbo, ibo, vao, ctx, shader, empty_texture, cache, renderer, Arial, avoid
+    global vbo, ibo, vao, ctx, shader, empty_texture, cache, renderer, Arial, avoid, paused
+    global btn_pause, btn_resume, btn_leave
     avoid = []
+    paused = False
 
     renderer = rend
     ctx = ctxs
@@ -59,6 +100,11 @@ def init(ctxs, rend):
     empty_texture = ctx.texture((w, h), 4, data)
     cache = {"": empty_texture}
     Arial = pygame.font.SysFont("Arial", 64, 1)
+
+    # Initialize UI buttons
+    btn_pause = GUIButton(ctx, " || ", Arial, bg_color=(40, 40, 40, 220), fg_color=(255, 255, 255))
+    btn_resume = GUIButton(ctx, "Resume", Arial, bg_color=(30, 140, 30, 230), fg_color=(255, 255, 255))
+    btn_leave = GUIButton(ctx, "Leave", Arial, bg_color=(160, 30, 30, 230), fg_color=(255, 255, 255))
 
 lineup = []
 
@@ -185,8 +231,9 @@ def update_tower_menu(dt):
     ctx.screen.use()
     ctx.disable(moderngl.DEPTH_TEST)
 
-    for z in range(8):
-        lineup[z][3] -= dt
+    for z in range(min(8, len(lineup))):
+        if not paused:
+            lineup[z][3] -= dt
         offset_x = (z % 4 / 4 - 0.5 + 0.5 / 4) * 2
         offset_y = -0.5 - 0.25 * (z // 4)
         
@@ -197,7 +244,7 @@ def update_tower_menu(dt):
 
         if min_x <= ortho_x <= max_x and min_y <= ortho_y <= max_y:
             lineup[z][2] = glm.mix(lineup[z][2], 0.23, dt * 10)
-            if pygame.mouse.get_pressed()[0] and lineup[z][0] != "" and lineup[z][3] < 0 and money >= lineup[z][5]:
+            if pygame.mouse.get_pressed()[0] and lineup[z][0] != "" and lineup[z][3] <= 0 and money >= lineup[z][5] and not paused:
                 selected = lineup[z]
             if pygame.mouse.get_pressed()[0]:
                 lineup[z][2] = 0.26
@@ -244,12 +291,44 @@ def render_money():
     vao.render(moderngl.TRIANGLE_STRIP)
     ctx.enable(moderngl.DEPTH_TEST)
 
+def render_pause_menu():
+    """Renders pause button and, if paused, the menu overlay buttons for Unpause and Leave."""
+    global paused
+    _, _, ortho_x, ortho_y = get_mouse_pos()
+    mouse_clicked = pygame.mouse.get_pressed()[0] and not off
+    ctx.disable(moderngl.DEPTH_TEST)
+    pause_pos = (-1.3, 0.85)
+    btn_pause.render(shader, vao, pause_pos, scale=0.15)
+
+    if not paused:
+        if mouse_clicked and btn_pause.is_hovered(ortho_x, ortho_y, pause_pos, scale=0.15):
+            paused = True
+        ctx.enable(moderngl.DEPTH_TEST)
+        return None
+
+    # Pause Overlay Active
+    resume_pos = (0.0, 0.25)
+    leave_pos = (0.0, -0.15)
+
+    btn_resume.render(shader, vao, resume_pos, scale=0.3)
+    btn_leave.render(shader, vao, leave_pos, scale=0.3)
+
+    if mouse_clicked:
+        if btn_resume.is_hovered(ortho_x, ortho_y, resume_pos, scale=0.3):
+            paused = False
+        elif btn_leave.is_hovered(ortho_x, ortho_y, leave_pos, scale=0.3):
+            paused = False
+            return "LEAVE"
+    
+    ctx.enable(moderngl.DEPTH_TEST)
+    return None
+
 def update_fighters(dt):
     global money
     for p in peoples:
         combat.FighterUpdate(p, dt, peoples, avoid, projectiles)
         p.update(dt, peoples, avoid, projectiles)
-     
+      
         if p.speed == 0 and not hasattr(p, "initialized"):
             renderer.scene_objects.append(fighters.QUAD.duplicate())
             p.initialized = renderer.scene_objects[len(renderer.scene_objects) - 1]
@@ -278,8 +357,19 @@ def update_projectiles(dt):
 
 def update(dt):
     dt = min(dt, 0.1)
-    levels.update(dt)
-    update_fighters(dt)
-    update_projectiles(dt)
+    
+    # Handle pause overlay UI interaction
+    pause_action = render_pause_menu()
+    if pause_action == "LEAVE":
+        return "MENU"
+
+    # Freeze gameplay calculations if paused
+    if not paused:
+        levels.update(dt)
+        update_fighters(dt)
+        update_projectiles(dt)
+
     update_tower_menu(dt)
     render_money()
+    render_pause_menu()
+    return None

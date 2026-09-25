@@ -44,19 +44,19 @@ time = 0
 def update(dt):
     global time
     time += dt
-    js = current_Json[1]["Spawns"]
-    current_Json[4] -= dt
-    for x in js:
-        if (time > x["Time"] and (time + x["Time"]) % x["Respawn"] < (time - dt + x["Time"]) % x["Respawn"]) and x["Amount"] > 1 and x["HP_Needed"] > current_Json[0][0].HP:
-            x["Amount"]-=1
-            queue.append(x)
-    print(current_Json[0])
-   # print(current_Json[4], len(current_Json[0]), current_Json[2], len(queue), int(time))
-    if current_Json[4] < 0 and len([x for x in current_Json[0] if x.enemy == 1])<= current_Json[2] and len(queue) > 0:
-        current_Json[4] = current_Json[3]
-        current_Json[0].append(fighters.GenerateFighter(queue[-1]["Spawn"], glm.vec3(0, 0, -2), 1))
-        current_Json[0][-1].update(dt, [], [], [])
-        queue.pop()
+    if current_Json:
+        js = current_Json[1]["Spawns"]
+        current_Json[4] -= dt
+        for x in js:
+            if (time > x["Time"] and (time + x["Time"]) % x["Respawn"] < (time - dt + x["Time"]) % x["Respawn"]) and x["Amount"] > 1 and x["HP_Needed"] > current_Json[0][0].HP:
+                x["Amount"]-=1
+                queue.append(x)
+    # print(current_Json[4], len(current_Json[0]), current_Json[2], len(queue), int(time))
+        if current_Json[4] < 0 and len([x for x in current_Json[0] if x.enemy == 1])<= current_Json[2] and len(queue) > 0:
+            current_Json[4] = current_Json[3]
+            current_Json[0].append(fighters.GenerateFighter(queue[-1]["Spawn"], glm.vec3(0, 0, -2), 1))
+            current_Json[0][-1].update(dt, [], [], [])
+            queue.pop()
 
 
         

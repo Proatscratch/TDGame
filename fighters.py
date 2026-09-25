@@ -123,8 +123,10 @@ def FighterData(fighter, position, enemy):
         rend.scene_objects.remove(QW.renderObject)
     QW.standing_range = fighter["standing_range"]
     QW.idle = fighter["idle"]
-    QW.plots = [(z["frame"], z["range"], z["damage"]) if "range" in z else (z["frame"], z["yvelocity"], z["G"], z["damage"], z["HIT_CONDITION"], z["sphere_size"], render.SpriteSheet(context, "assets/" + fighter["texture"] + f"/projectile{I}.png", z["Pframe"], )) for I, z in enumerate(fighter["plots"])]
-    
+    if fighter["plots"]:
+        QW.plots = [(z["frame"], z["range"], z["damage"]) if "range" in z else (z["frame"], z["yvelocity"], z["G"], z["damage"], z["HIT_CONDITION"], z["sphere_size"], render.SpriteSheet(context, "assets/" + fighter["texture"] + f"/projectile{I}.png", z["Pframe"], )) for I, z in enumerate(fighter["plots"])]
+    else:
+        QW.plots = []
     QW.frr = list(fighter["plots"])
     QW.HP = fighter["health"]
     QW.money = fighter["Cost"]

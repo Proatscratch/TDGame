@@ -34,6 +34,23 @@
         "Cost": 20
 
     },
+    "Play" : {
+        "name": "Play Game!",
+        "health": 0,
+        "speed": 0.0,
+        "standing_range": 0,
+        "idle": 0,
+        
+        "plots": [
+            
+        ],
+        "texture": "Play",
+        "AttackFrames": 1,
+        "IdleFrames": 1,
+        "WalkFrames": 1,
+        "Recharge": 0.01,
+        "Cost": 0
+    } ,
     "Debug Unit2" : {
         "name": "Debug Unit2",
         "health": 100,
