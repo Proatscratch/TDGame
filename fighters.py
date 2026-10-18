@@ -58,7 +58,8 @@ class Fighter:
 
     def free(self):
         self.renderObject.y = -3321
-        rend.scene_objects.remove(self.renderObject)
+        if (self.renderObject in rend.scene_objects):
+            rend.scene_objects.remove(self.renderObject)
 
     def update(self, dt, enemies, avoid, projectiles):
         

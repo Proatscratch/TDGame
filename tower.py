@@ -112,7 +112,7 @@ def Tower_As_Fighter(position, enemy, segments=16, radius=0.5, height=1.0, brick
  #   rend.scene_objects.append(fight.renderObject)
     fight.renderObject.clippable = 1
     fight.update(0, [], [], [])
-    fight.HP = 1000
+    fight.HP = 1
     fight.plots = ((0, 0, 0),)
     fight.frr = list(fight.plots)
     fight.speed = 0

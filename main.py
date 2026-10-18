@@ -175,6 +175,8 @@ game.peoples.append(Enemy_Tower)
 Player_Tower = tower.Tower_As_Fighter(glm.vec3(0, 0, 3.5), 0)
 game.peoples.append(Player_Tower)
 
+Enemy_tower_renderobject_copy = Enemy_Tower.renderObject.duplicate()
+Player_tower_renderobject_copy = Player_Tower.renderObject.duplicate()
 peeps = game.peoples.copy()
 clock = pygame.time.Clock()
 t_acc = 0.0
@@ -198,6 +200,7 @@ def LoadLevel(name, lineup):
             z.free()
     game.peoples = peeps.copy()
     game.avoid = []
+    
     game.levels.LoadLevelsFromJSON(name, game.peoples, Z, game.avoid)
     game.commitLineup(lineup)
     game.paused = False
@@ -208,6 +211,7 @@ renderer.ambient = render.SpriteSheet(ctx, "assets/sky.png")
 
 # Main Loop
 while True:
+    
     dt = clock.tick(60) / 1000.0
     t_acc += dt
     game.off = 0
@@ -222,6 +226,7 @@ while True:
 
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             if state == "MENU" and is_hovered:
+                
                 LoadLevel("Dummy_Test", lineup)
 
         if event.type == pygame.MOUSEBUTTONUP:
@@ -229,12 +234,26 @@ while True:
 
     # Render World
     renderer.update(dt)
-
     # Render UI & State Updates
     if state == "PLAYING":
+        
         result = game.update(dt)
+        
         if result == "MENU":
             state = "MENU"
+            for z in game.peoples:
+                z.free()
+            game.peoples = []
+            
+            game.peoples.insert(0, Enemy_Tower)
+            Enemy_Tower.renderObject = Enemy_tower_renderobject_copy.duplicate()
+            game.peoples.insert(0, Player_Tower)
+            Player_Tower.renderObject = Player_tower_renderobject_copy.duplicate()
+            Player_Tower.HP = 1000
+            Enemy_Tower.HP = 1000
+            renderer.scene_objects.append(Player_Tower.renderObject)
+            renderer.scene_objects.append(Enemy_Tower.renderObject)
+            game.victory = 0
     elif state == "MENU":
         popart_banner.render()
         play_button.render(is_hovered=is_hovered)

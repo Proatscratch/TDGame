@@ -83,7 +83,7 @@ class GUIButton:
 
 def init(ctxs, rend):
     global vbo, ibo, vao, ctx, shader, empty_texture, cache, renderer, Arial, avoid, paused
-    global btn_pause, btn_resume, btn_leave
+    global btn_pause, btn_resume, btn_leave, btn_defeat, btn_victory
     avoid = []
     paused = False
 
@@ -105,6 +105,10 @@ def init(ctxs, rend):
     btn_pause = GUIButton(ctx, " || ", Arial, bg_color=(40, 40, 40, 220), fg_color=(255, 255, 255))
     btn_resume = GUIButton(ctx, "Resume", Arial, bg_color=(30, 140, 30, 230), fg_color=(255, 255, 255))
     btn_leave = GUIButton(ctx, "Leave", Arial, bg_color=(160, 30, 30, 230), fg_color=(255, 255, 255))
+
+    
+    btn_victory = GUIButton(ctx, "Victory!", Arial, bg_color=(255, 255, 30, 230), fg_color=(255, 255, 255))
+    btn_defeat = GUIButton(ctx, "Defeat...", Arial, bg_color=(30, 0, 30, 230), fg_color=(255, 255, 255))
 
 lineup = []
 
@@ -323,8 +327,31 @@ def render_pause_menu():
     ctx.enable(moderngl.DEPTH_TEST)
     return None
 
+def render_victory_menu(victory):
+    """Renders victory button"""
+    _, _, ortho_x, ortho_y = get_mouse_pos()
+    mouse_clicked = pygame.mouse.get_pressed()[0] and not off
+    ctx.disable(moderngl.DEPTH_TEST)
+    pause_pos = (-1.3, 0.85)
+
+
+    # Pause Overlay Active
+    resume_pos = (0.0, 0.25)
+    leave_pos = (0.0, -0.15)
+
+    (btn_victory if victory > 0 else btn_defeat).render(shader, vao, resume_pos, scale=0.3)
+    btn_leave.render(shader, vao, leave_pos, scale=0.3)
+
+    if mouse_clicked:
+        if btn_leave.is_hovered(ortho_x, ortho_y, leave_pos, scale=0.3):
+            return "LEAVE"
+    
+    ctx.enable(moderngl.DEPTH_TEST)
+    return None
+victory = 0
 def update_fighters(dt):
     global money
+    global victory
     for p in peoples:
         combat.FighterUpdate(p, dt, peoples, avoid, projectiles)
         p.update(dt, peoples, avoid, projectiles)
@@ -339,8 +366,17 @@ def update_fighters(dt):
             p.initialized.position.y += 1
             p.initialized.position.z -= 2
             p.initialized.clippable = 1
-            
+        
         if p.HP <= 0:
+            if (p.speed == 0 and p.enemy):
+                for x in peoples:
+                    if (x.enemy): x.HP = 0
+                victory = 1
+            elif (p.speed == 0):
+                for x in peoples:
+                    if (not x.enemy): x.HP = 0
+                victory = -1
+                
             if p.enemy:
                 money += p.money            
             p.free()
@@ -362,7 +398,10 @@ def update(dt):
     pause_action = render_pause_menu()
     if pause_action == "LEAVE":
         return "MENU"
-
+    if (victory):
+        vic_action = render_victory_menu(victory)
+        if (vic_action == "LEAVE"):
+            return "MENU"
     # Freeze gameplay calculations if paused
     if not paused:
         levels.update(dt)
