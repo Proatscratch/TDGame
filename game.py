@@ -352,6 +352,7 @@ victory = 0
 def update_fighters(dt):
     global money
     global victory
+    collect = []
     for p in peoples:
         combat.FighterUpdate(p, dt, peoples, avoid, projectiles)
         p.update(dt, peoples, avoid, projectiles)
@@ -382,7 +383,10 @@ def update_fighters(dt):
             p.free()
             if p.speed == 0:
                 renderer.scene_objects.remove(p.initialized)
-            peoples.remove(p)
+            collect.append(p)
+    for z in collect:
+        
+        peoples.remove(z)
 
 def update_projectiles(dt):
     for z in projectiles:
