@@ -73,7 +73,7 @@
             "Spawns": [{
                 "Spawn": "Debug Unit2",
                 "Time": 0,
-                "Respawn": 0.1,
+                "Respawn": 8,
                 "Mag": 1,
                 "HP_Needed": 1200, 
                 "Amount": 2147483647
