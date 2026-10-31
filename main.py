@@ -227,7 +227,7 @@ while True:
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             if state == "MENU" and is_hovered:
                 
-                LoadLevel("Dummy_Test", lineup)
+                LoadLevel("Wave_Test", lineup)
 
         if event.type == pygame.MOUSEBUTTONUP:
             game.off = 1
@@ -254,6 +254,9 @@ while True:
             renderer.scene_objects.append(Player_Tower.renderObject)
             renderer.scene_objects.append(Enemy_Tower.renderObject)
             game.victory = 0
+
+            game.levels.current_wave =0
+            game.levels.time = 0
     elif state == "MENU":
         popart_banner.render()
         play_button.render(is_hovered=is_hovered)

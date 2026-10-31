@@ -76,7 +76,9 @@
                 "Respawn": 8,
                 "Mag": 1,
                 "HP_Needed": 1200, 
-                "Amount": 2147483647
+                "Amount": 2147483647,
+                "wave": 0
+                
             },
             {
                 "Spawn": "Debug Unit2",
@@ -84,10 +86,33 @@
                 "Respawn": 1,
                 "Mag": 1,
                 "HP_Needed": 300,
-                "Amount": 3
+                "Amount": 3,
+                "wave": 0
             }
         ]
         
+        },
+
+        "Wave_Test": {
+            "stage": "tower.png",
+            "sky": "sky.png",
+            "light_color": [1, 1, 1],
+            "lightPos": [5, 5, 0],
+            "BaseHP": 1000,
+            "Limit": 4,
+            "SpawnDist": 1,
+            "Obstacles": [],
+            "Spawns": [{
+                "Spawn": "Debug Unit2",
+                "Time": 0,
+                "Respawn": 8,
+                "Mag": 1,
+                "HP_Needed": 1200, 
+                "Amount": 10,
+                "wave": 0
+                
+            }]
+
         }
     }
 }

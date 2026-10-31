@@ -209,7 +209,8 @@ def place_selected_unit(dt, z):
                 world_space_pos = glm.vec3(0, 0, 4)
             R = 0
             peoples.append(fighters.GenerateFighter(selected[0], world_space_pos, 0))
-            peoples[-1].renderObject = lineup[z][6].duplicate()
+            if lineup[z][6] != fighters.QUAD:
+                peoples[-1].renderObject = lineup[z][6].duplicate()
             renderer.scene_objects.append(peoples[-1].renderObject)
             peoples[-1].update(dt, [], [], [])
             peoples[-1].animation = fighters.IDLE

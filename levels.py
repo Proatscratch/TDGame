@@ -41,16 +41,27 @@ def LoadLevelsFromJSON(name, peoples, Z, avoid):
         rend.scene_objects[-1].position = glm.vec3(z['pos'])
 queue = []
 time = 0
+current_wave = 0
 def update(dt):
     global time
+    global current_wave
     time += dt
     if current_Json:
         js = current_Json[1]["Spawns"]
         current_Json[4] -= dt
         for x in js:
-            if (time > x["Time"] and (time + x["Time"]) % x["Respawn"] < (time - dt + x["Time"]) % x["Respawn"]) and x["Amount"] > 1 and x["HP_Needed"] > current_Json[0][0].HP:
+            if (time > x["Time"] and (time + x["Time"]) % x["Respawn"] < (time - dt + x["Time"]) % x["Respawn"]) and x["Amount"] > 1 and x["HP_Needed"] > current_Json[0][0].HP and current_wave >= x["wave"]:
                 x["Amount"]-=1
+
+
+                
                 queue.append(x)
+    for x in js:
+        if (x["Amount"] > 0 and x["wave"] <= current_wave and current_Json[0] == [] and queue == []):
+            break
+    else:
+        current_wave+=1
+
     # print(current_Json[4], len(current_Json[0]), current_Json[2], len(queue), int(time))
         if current_Json[4] < 0 and len([x for x in current_Json[0] if x.enemy == 1])<= current_Json[2] and len(queue) > 0:
             current_Json[4] = current_Json[3]
